@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(ORB_SLAM3)
+enable_language(CUDA)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
@@ -32,6 +33,15 @@ find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 #find_package(realsense2)
 
+find_package(CUDA REQUIRED)
+
+set(CUDA_ARCH_BIN "87")
+set(CUDA_ARCH_PTX "87")
+set(CMAKE_CUDA_ARCHITECTURES 87)
+
+message(STATUS "CUDA Version: ${CUDA_VERSION_STRING}")
+message(STATUS "CUDA Path: ${CUDA_TOOLKIT_ROOT_DIR}")
+
 include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/include
@@ -39,6 +49,7 @@ ${PROJECT_SOURCE_DIR}/include/CameraModels
 ${PROJECT_SOURCE_DIR}/Thirdparty/Sophus
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
+${CUDA_INCLUDE_DIRS}
 )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -72,6 +83,7 @@ src/GeometricTools.cc
 src/TwoViewReconstruction.cc
 src/Config.cc
 src/Settings.cc
+src/CudaORBextractor.cu
 include/System.h
 include/Tracking.h
 include/LocalMapping.h
@@ -102,6 +114,7 @@ include/TwoViewReconstruction.h
 include/SerializationUtils.h
 include/Config.h
 include/Settings.h
+include/CudaORBextractor.h
 )
 
 add_subdirectory(Thirdparty/g2o)
@@ -114,6 +127,7 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 -lboost_serialization
 -lcrypto
+${CUDA_LIBRARIES}
 )
 
 

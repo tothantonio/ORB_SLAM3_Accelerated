@@ -34,6 +34,8 @@
 #include <mutex>
 #include <chrono>
 
+#include "CudaORBextractor.h"
+
 
 using namespace std;
 
@@ -48,6 +50,13 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpAtlas(pAtlas), mnLastRelocFrameId(0), time_recently_lost(5.0),
     mnInitialFrameId(0), mbCreatedMap(false), mnFirstFrameId(0), mpCamera2(nullptr), mpLastKeyFrame(static_cast<KeyFrame*>(NULL))
 {
+
+    // --- TEST CUDA --- 
+    std::cout << std::endl << "--- TEST CUDA ---" << std::endl;
+    CudaORBextractor tester;
+    tester.WarmupGPU();
+    std::cout << "=== TEST CUDA FINALIZAT ===" << std::endl << std::endl;
+
     // Load camera parameters from settings file
     if(settings){
         newParameterLoader(settings);
