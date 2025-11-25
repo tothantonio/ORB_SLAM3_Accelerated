@@ -52,10 +52,10 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
 {
 
     // --- TEST CUDA --- 
-    std::cout << std::endl << "--- TEST CUDA ---" << std::endl;
-    CudaORBextractor tester;
-    tester.WarmupGPU();
-    std::cout << "=== TEST CUDA FINALIZAT ===" << std::endl << std::endl;
+    // std::cout << std::endl << "--- TEST CUDA ---" << std::endl;
+    // CudaORBextractor tester;
+    // tester.WarmupGPU();
+    // std::cout << "=== TEST CUDA FINALIZAT ===" << std::endl << std::endl;
 
     // Load camera parameters from settings file
     if(settings){
@@ -1397,11 +1397,6 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
     else if(mSensor == System::IMU_RGBD)
         mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,&mLastFrame,*mpImuCalib);
 
-
-
-
-
-
     mCurrentFrame.mNameFile = filename;
     mCurrentFrame.mnDataset = mnNumDataset;
 
@@ -1431,6 +1426,31 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
             cvtColor(mImGray,mImGray,cv::COLOR_RGBA2GRAY);
         else
             cvtColor(mImGray,mImGray,cv::COLOR_BGRA2GRAY);
+    }
+
+    static bool bFirstFrameCuda = true;
+    if(bFirstFrameCuda)
+    {
+        std::cout << "\n=== [CUDA TEST] ===" << std::endl;
+        
+        // Initializam extractorul CUDA
+        CudaORBextractor* pCudaTest = new CudaORBextractor(8, 1.2f);
+
+        pCudaTest->ExtractORB(mImGray);     
+
+        cv::Mat imgGPU;
+        pCudaTest->DownloadPyramidLevel(2, imgGPU);
+
+        if(!imgGPU.empty()) {
+            cv::imwrite("GPU_Level2.png", imgGPU);
+            std::cout << "Imaginea procesata 'GPU_Level2.png' a fost salvata!" << std::endl;
+            std::cout << "Dimensiuni: " << imgGPU.cols << "x" << imgGPU.rows << std::endl;
+        }
+
+        std::cout << "=== [CUDA TEST] FINALIZAT ===\n" << std::endl;
+        
+        bFirstFrameCuda = false;
+        delete pCudaTest;
     }
 
     if (mSensor == System::MONOCULAR)
