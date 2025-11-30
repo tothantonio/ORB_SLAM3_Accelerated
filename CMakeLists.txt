@@ -83,7 +83,12 @@ src/GeometricTools.cc
 src/TwoViewReconstruction.cc
 src/Config.cc
 src/Settings.cc
-src/CudaORBextractor.cu
+src/cuda/descriptor.cu
+src/cuda/fast.cu
+src/cuda/gaussian_blur.cu
+src/cuda/k_means.cu
+src/cuda/orientation.cu
+src/cuda/resize.cu
 include/System.h
 include/Tracking.h
 include/LocalMapping.h
@@ -114,7 +119,12 @@ include/TwoViewReconstruction.h
 include/SerializationUtils.h
 include/Config.h
 include/Settings.h
-include/CudaORBextractor.h
+include/gaussian_blur.h
+include/k_means.h
+include/orientation.h
+include/resize.h
+include/descriptor.h
+include/fast.h
 )
 
 add_subdirectory(Thirdparty/g2o)
