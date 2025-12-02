@@ -86,6 +86,16 @@ using namespace std;
 
 namespace ORB_SLAM3
 {
+     /*
+     * Host callback used to copy the resized device image pyramid back
+     * into OpenCV cv::Mat objects for each level. This function is
+     * intended to be launched via cudaLaunchHostFunc on a CUDA stream
+     * once the device-to-host copy (outputImages) has completed.
+     *
+     * Parameters:
+     * - data_: pointer to copyPyrimid_t carrying pointers and size
+     *          information required to reconstruct per-level cv::Mat s.
+     */
 
     void copyPyramid(void *data_) {
         copyPyrimid_t *data = (copyPyrimid_t *)data_;
@@ -99,6 +109,19 @@ namespace ORB_SLAM3
         }
     }
 
+    /*
+     * Fills the provided kernel array `K` with a Gaussian kernel used by
+     * the blur implementation. `KW` and `KH` define kernel dimensions and
+     * `SIGMA` sets the standard deviation.
+     *
+     * Parameters:
+     * - K: preallocated array of size `KW*KH` to receive kernel values.
+     *
+     * Notes:
+     * - The function uses a simple separable Gaussian formula to compute
+     *   per-element weights. The caller is responsible for allocating `K`.
+     */
+
     void generateGaussian(float K[]) {
         const double stdev = SIGMA;
         const double pi = CV_PI;
@@ -109,6 +132,22 @@ namespace ORB_SLAM3
                 K[(h + KH/2) * KW + (w + KW/2)] = constant * (1 / exp((pow(h, 2) + pow(w, 2)) / (2 * stdev)));
     }
 
+    /*
+     * Computes a grid of initial centroid points used for spatial
+     * distribution of keypoint detection. Given a desired number of
+     * features "f", and image "rows"/"cols", this function fills the
+     * "centroids" array with "int2" positions located inside valid
+     * detection borders and adjusts "f" to the actual number of
+     * generated centroids (rounded up to a multiple of 4 then fitted
+     * into a roughly square layout).
+     *
+     * Parameters:
+     * - f: requested number of centroids (modified in-place to the
+     *      actual number produced).
+     * - rows, cols: image dimensions used to compute borders and spacing.
+     * - centroids: output array of length at least the (possibly adjusted)
+     *              "f" to store centroid coordinates.
+     */
     void computeCentroids(int &f, int rows, int cols, int2 *centroids){
         const int new_f = ceil(f / 4.0) * 4;
         const float l = sqrt(new_f);
@@ -126,7 +165,6 @@ namespace ORB_SLAM3
         const float offset_x = (float)w / l_o;
         const float offset_y = (float)h / l_v;
 
-
         int ic = 0;
         for (int i=0; i<l_o; i++){
             for (int j=0; j<l_v; j++){
@@ -141,7 +179,6 @@ namespace ORB_SLAM3
         }
         f = ic;
     }
-
 
     static int bit_pattern_31_[256*4] =
             {
@@ -408,6 +445,20 @@ namespace ORB_SLAM3
             nfeatures(_nfeatures), scaleFactor(_scaleFactor), nlevels(_nlevels),
             iniThFAST(_iniThFAST), minThFAST(_minThFAST)
     {
+        /*
+         * Initializes the extractor with user parameters, allocates GPU
+         * resources, precomputes scale factors, kernels and sampling
+         * patterns required by the ORB pipeline.
+         *
+         * Parameters mirror the constructor arguments:
+         * - _nfeatures: desired maximum number of keypoints to extract.
+         * - _scaleFactor: pyramid scale factor between consecutive levels.
+         * - _nlevels: number of levels in the image pyramid.
+         * - _iniThFAST/_minThFAST: FAST detector high/low thresholds.
+         *
+         * - Allocates CUDA streams/events and device buffers used by
+         *   subsequent processing stages.
+         */
         mvScaleFactor.resize(nlevels);
         mvLevelSigma2.resize(nlevels);
         mvScaleFactor[0]=1.0f;
@@ -510,6 +561,25 @@ namespace ORB_SLAM3
         cudaMemcpyAsync(umax_gpu, umax.data(), sizeof(int)*umax.size(), cudaMemcpyHostToDevice, cudaStream);
     }
 
+    /*
+     * High-level routine that orchestrates keypoint detection across
+     * pyramid levels using the CUDA-accelerated FAST detector and
+     * subsequent filtering, orientation and descriptor computation.
+     *
+     * The method fills "allKeypoints" with detected "OrbKeyPoint"
+     * structures (including descriptor bytes) for each pyramid level.
+     * It performs the following GPU-accelerated steps in sequence:
+     *  - fast_extract (detect corners)
+     *  - filter_points (cluster/filter corner candidates)
+     *  - compute_orientation (compute keypoint angles)
+     *  - compute_descriptor (compute ORB descriptors)
+     *
+     * Notes:
+     * - This function expects GPU buffers to be preallocated.
+     * - Synchronization with CUDA streams is used to ensure proper
+     *   ordering of BLUR and descriptor computation.
+     */
+
     void ORBextractor::ComputeKeyPointsOctTree(vector<vector<OrbKeyPoint> >& allKeypoints)
     {
         allKeypoints.resize(nlevels);
@@ -581,6 +651,19 @@ namespace ORB_SLAM3
         this->allocatedInputSize = 0;
     }
 
+    /*
+     * Allocates device and pinned host memory needed for the image
+     * pyramid, corner buffers, features-per-level arrays and centroid
+     * storage. Also computes and copies initial centroids to device
+     * memory.
+     *
+     * Parameters:
+     * - w,h: target dimensions for allocation (usually scaled image
+     *         size according to `maxScaleFactor`).
+     * - imageStep: stride (bytes per row) for the images (kept for
+     *              compatibility though not all allocations use it).
+     */
+
     void ORBextractor::allocMemory(int w, int h, int imageStep) {
         cudaMalloc(&(this->d_R), sizeof(uint8_t)*w*h*this->nlevels);
 
@@ -633,6 +716,26 @@ namespace ORB_SLAM3
         }
     }
 
+
+     /*
+     * Main extraction entry point. Given an input image and optional mask
+     * this callable object computes keypoints and descriptors and returns
+     * the number of mono (non-stereo) keypoints.
+     *
+     * Workflow overview:
+     *  - ensure buffers are allocated for the image size
+     *  - build image pyramid (`ComputePyramid`)
+     *  - detect and refine keypoints across levels (`ComputeKeyPointsOctTree`)
+     *  - pack descriptors into the provided `OutputArray`
+     *
+     * Parameters:
+     * - _image: single-channel input image (CV_8UC1 required)
+     * - _mask: optional mask (currently unused)
+     * - _keypoints: output vector of cv::KeyPoint
+     * - _descriptors: output OpenCV matrix (n x 32 bytes)
+     * - vLappingArea: custom region used to split mono/stereo ordering
+     */
+
     int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                                   OutputArray _descriptors, std::vector<int> &vLappingArea)
     {
@@ -670,54 +773,53 @@ namespace ORB_SLAM3
 
         _keypoints = vector<cv::KeyPoint>(nkeypoints);
 
-        int offset = 0;
-        //Modified for speeding up stereo fisheye matching
-        int monoIndex = 0, stereoIndex = nkeypoints-1;
-        for (int level = 0; level < nlevels; ++level)
-        {
-            vector<OrbKeyPoint>& keypoints = allKeypoints[level];
+        int curr = 0;
+
+        for (int level = 0; level < nlevels; ++level) {
+            vector<OrbKeyPoint> & keypoints = allKeypoints[level];
             int nkeypointsLevel = (int)keypoints.size();
 
-            if(nkeypointsLevel==0)
-                continue;
+            if (nkeypointsLevel == 0) continue;
 
-            offset += nkeypointsLevel;
+            float scale = mvScaleFactor[level];
 
-
-            float scale = mvScaleFactor[level]; //getScale(level, firstLevel, scaleFactor);
-            int i = 0;
             for (vector<OrbKeyPoint>::iterator keypoint = keypoints.begin(),
-                         keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint){
+                     keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint) {
                 cv::Mat desc(1, 32, CV_8U, (*keypoint).descriptor);
 
-                // Scale keypoint coordinates
-                if (level != 0){
+                if (level != 0) {
                     keypoint->point.pt *= scale;
                 }
 
-                if(keypoint->point.pt.x >= vLappingArea[0] && keypoint->point.pt.x <= vLappingArea[1]){
-                    _keypoints.at(stereoIndex) = (*keypoint).point;
-                    desc.row(0).copyTo(descriptors.row(stereoIndex));
-                    stereoIndex--;
-                }
-                else{
-                    _keypoints.at(monoIndex) = (*keypoint).point;
-                    desc.row(0).copyTo(descriptors.row(monoIndex));
-                    monoIndex++;
-                }
-                i++;
+                _keypoints.at(curr) = (*keypoint).point;
+                desc.row(0).copyTo(descriptors.row(curr));
+                
+                curr++;
             }
         }
 
         cudaProfilerStop();
-
-        //cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
-        return monoIndex;
+        return curr;
     }
+
+     /*
+     * Builds the image scale pyramid on the device. The steps are:
+     * - copy input image to device
+     * - call `resize` to generate scaled levels into `d_images`
+     * - schedule a blurred version via `gaussian_blur` into `d_imagesBlured`
+     * - asynchronously copy the packed pyramid back to host memory
+     *   (`outputImages`) and launch `copyPyramid` on a host callback to
+     *   reconstruct `mvImagePyramid` cv::Mat views.
+     *
+     * The function uses CUDA streams and events to overlap resize,
+     * blur and host copies for better throughput.
+     */
 
     void ORBextractor::ComputePyramid(cv::Mat image)
     {
+        //RAM -> VRAM
         cudaMemcpyAsync(d_inputImage, image.data, sizeof(uchar)*image.rows*image.step[0], cudaMemcpyHostToDevice, cudaStream);
+        //RESIZE
         resize(image.rows, image.cols, d_scaleFactor, d_inputImage, d_images, nlevels, image.step[0], cudaStream);
         cudaEventRecord(resizeComplete, cudaStream);
 

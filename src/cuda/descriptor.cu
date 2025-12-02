@@ -4,29 +4,22 @@
 #include "descriptor.h"
 
 /*
- * comp_descr:
- * __device__ helper that computes the 256-bit ORB descriptor (stored
- * as 32 bytes) for a single keypoint `pt` using a precomputed sampling
- * `pattern`. This function is executed on the GPU and is intended to be
- * inlined into caller kernels for performance.
- *
- * Parameters:
- * - image: pointer to the image (single-channel, uchar) for the current
- *          pyramid level or the original image depending on caller.
- * - pt:    reference to an `ORB_SLAM3::GpuPoint` that holds the keypoint
- *          position (`x`, `y`), orientation (`angle`) and the output
- *          `descriptor` byte array where the result is stored.
- * - pattern: pointer to an array of `cv::Point` pairs describing the
- *            sampling pattern used by ORB (each loop iteration consumes
- *            16 pairs to compute one descriptor byte across 32 bytes).
- * - imageStep: number of bytes per image row (stride) for indexing
- *
- * Behavior/notes:
- * - Rotates the sampling pattern by the keypoint orientation and reads
- *   intensity values from the rotated coordinates.
- * - Compares intensity pairs to form bits of the descriptor and writes
- *   32 descriptor bytes into `pt.descriptor`.
- */
+    * __device__ helper that computes the ORB descriptor for a keypoint
+    * located at (pt.x, pt.y) in the given image. This function is executed
+    * on the GPU and is intended to be inlined into caller kernels for performance.
+    *
+    * Parameters:
+    * - image: pointer to the image (single-channel, uchar) for the current
+    *          pyramid level or the original image depending on caller.
+    * - pt:    reference to the GpuPoint structure representing the keypoint.
+    * - pattern: pointer to the precomputed ORB sampling pattern (cv::Point array).
+    * - imageStep: number of bytes per image row (stride) for indexing
+    *
+    * Behavior/notes:
+    * - The descriptor is computed by rotating the sampling pattern according
+    *   to the keypoint's orientation and comparing pixel intensities.
+    * - The resulting 256-bit descriptor is stored in `pt.descriptor`.
+*/
 __device__ inline void comp_descr(const uchar *image, ORB_SLAM3::GpuPoint &pt, cv::Point *pattern, int imageStep) {
     const float factorPI = (float)(CV_PI/180.f);
     const float angle = (float)pt.angle*factorPI;
@@ -68,41 +61,24 @@ __device__ inline void comp_descr(const uchar *image, ORB_SLAM3::GpuPoint &pt, c
     }    
 
 /*
- * compute_descriptor_kernel:
- * CUDA kernel that computes ORB descriptors for a set of keypoints across
- * pyramid levels. The kernel is launched with a 2D grid where the X
- * dimension indexes keypoint slots (threads per level) and the Y dimension
- * indexes the pyramid `level`.
- *
- * Parameters:
- * - images: device buffer containing image pyramid levels concatenated
- *           (except level 0 which may be in `inputImage`). Layout is
- *           assumed to match indexing used here: `level*cols*rows`.
- * - inputImage: device pointer to the original level-0 image data.
- * - pointsTotal: array of `ORB_SLAM3::GpuPoint` storing all keypoints for
- *                every level; points for level L are at offset
- *                `level * cols * rows`.
- * - sizes: array with `sizes[level]` = number of keypoints at that level.
- * - pattern: sampling pattern used to compute descriptors (shared across)
- * - inputImageStep: stride (bytes per row) for the level-0 `inputImage`
- * - maxLevel: maximum pyramid levels to process (height of `sizes`)
- * - mvScaleFactor: per-level scale factors (used to compute sampling size)
- * - cols, rows: base image width/height used to compute offsets into the
- *               packed pyramid buffer for higher levels.
- *
- * Kernel mapping notes:
- * - `index` is the point index within a level computed from block/thread
- *   X indices. `level` is computed from block/thread Y indices.
- * - If `index >= sizes[level]` the thread exits; similarly threads with
- *   `level >= maxLevel` return early.
- * - The kernel selects either `inputImage` (level 0) or the packed
- *   `images[level]` buffer for non-zero levels. It computes a per-level
- *   `imageStep` (stride) used by `comp_descr`.
- *
- * Thread-safety/assumptions:
- * - Each thread writes only to its own `points[index].descriptor` so no
- *   synchronization is required here.
- */
+    * CUDA kernel that computes ORB descriptors for a batch of keypoints
+    * across multiple pyramid levels.
+    *
+    * Parameters:
+    * - images: pointer to the packed pyramid images buffer
+    * - inputImage: pointer to the original image data (single-channel uchar)
+    * - pointsTotal: pointer to the array of GpuPoint structures for all levels
+    * - sizes: pointer to an array containing the number of keypoints per pyramid level
+    * - pattern: pointer to the precomputed ORB sampling pattern (cv::Point array)
+    * - inputImageStep: stride (bytes per row) of the original image
+    * - maxLevel: number of pyramid levels
+    * - cols, rows: dimensions of the original image
+    *
+    * Behavior/notes:
+    * - Each thread computes the descriptor for one keypoint in one pyramid level.
+    * - Selects either `inputImage` (level 0) or `images[level]` for non-zero levels.
+    * - Writes the computed descriptor directly into the corresponding GpuPoint.
+*/
 __global__ void compute_descriptor_kernel(uchar *images, uchar *inputImage, ORB_SLAM3::GpuPoint *pointsTotal, 
     const uint *sizes, cv::Point* pattern, int inputImageStep, int maxLevel, const float *mvScaleFactor, int cols, int rows) {
 
@@ -128,23 +104,6 @@ __global__ void compute_descriptor_kernel(uchar *images, uchar *inputImage, ORB_
     comp_descr(myImagePyrimid, points[index], pattern, imageStep);
 }
 
-/*
- * compute_descriptor (host):
- * Host function that prepares and launches the CUDA kernel to compute
- * ORB descriptors for a batch of keypoints across pyramid levels.
- *
- * Parameters mirror those of the kernel plus a `cudaStream` to run on.
- * - images, inputImage, points, sizes, pattern, inputImageStep, maxLevel,
- *   cols, rows, mvScaleFactor
- * - maxPointsLevel: maximum number of points across all levels used only
- *   to size the grid's X dimension (total threads per Y-level).
- * - cudaStream: stream to launch the kernel on (use 0 for default stream).
- *
- * Launch configuration:
- * - block size `db` is (128, 8): 128 threads in X (points per block) and
- *   8 threads in Y (levels per block). Grid dims `dg` are computed to
- *   cover `maxPointsLevel` in X and `maxLevel` in Y.
- */
 void compute_descriptor(uchar *images, uchar *inputImage, ORB_SLAM3::GpuPoint *points, uint *sizes, int maxPointsLevel, 
     cv::Point* pattern, int inputImageStep, int maxLevel, int cols, int rows, float *mvScaleFactor, cudaStream_t cudaStream){
 
