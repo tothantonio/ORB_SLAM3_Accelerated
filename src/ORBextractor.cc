@@ -18,12 +18,13 @@ using namespace std;
 namespace ORB_SLAM3
 {
 
-    const int PATCH_SIZE = 31;
+    const int PATCH_SIZE = 31; // dimensitunea patratului din jurul keypoint-ului
     const int HALF_PATCH_SIZE = 15;
     const int EDGE_THRESHOLD = 19;
 
 
-    static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
+    static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max) // calculeaza unghiul unui keypoint
+    // necesar pentru ca descriptorii ORB sa fie invariant la rotatie
     {
         int m_01 = 0, m_10 = 0;
 
@@ -810,6 +811,8 @@ namespace ORB_SLAM3
    int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                               OutputArray _descriptors, std::vector<int> &vLappingArea)
 {
+
+    cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
     if(_image.empty()) return -1;
 
     Mat image = _image.getMat();
@@ -913,6 +916,8 @@ namespace ORB_SLAM3
     cout << " --------------------------------------" << endl;
     cout << " TOTAL FRAME TIME:        " << t_total << " ms" << endl;
     cout << "========================================" << endl;
+
+    cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
 
     return monoIndex;
 }

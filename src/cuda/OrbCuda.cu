@@ -4,35 +4,37 @@
 #include <algorithm>
 
 // Constante
-__constant__ int c_pattern[256 * 4];
-__constant__ int c_circle_offsets[16][2];
+__constant__ int c_pattern[256 * 4];  // 256 perechi de puncte (x1,y1,x2,y2) pentru descriptorii ORB
+__constant__ int c_circle_offsets[16][2]; // Offset-urile cercului FAST
 #define DEG2RAD 0.0174532925f
 
 // Buffere reutilizabile (static)
-static unsigned char* g_d_image = nullptr;
-static size_t g_d_image_size = 0;
-static GpuPoint* g_d_keypoints = nullptr;
-static size_t g_d_keypoints_capacity = 0;
-static unsigned char* g_d_descriptors = nullptr;
-static size_t g_d_descriptors_capacity = 0;
+static unsigned char* g_d_image = nullptr; // Imaginea pe GPU
+static size_t g_d_image_size = 0; // Dimensiunea imaginii pe GPU
+static GpuPoint* g_d_keypoints = nullptr; // Keypoint-urile pe GPU
+static size_t g_d_keypoints_capacity = 0; // Capacitatea buffer-ului de keypoint-uri
+static unsigned char* g_d_descriptors = nullptr; // Descriptorii pe GPU
+static size_t g_d_descriptors_capacity = 0; // Capacitatea buffer-ului de descriptori
 
 // Buffere FAST
-static unsigned char* d_img_fast = nullptr;
-static size_t d_img_fast_size = 0;
-static short2* d_corners = nullptr;
-static int* d_counter = nullptr;
+static unsigned char* d_img_fast = nullptr; // Imaginea pentru FAST pe GPU
+static size_t d_img_fast_size = 0; // Dimensiunea imaginii pentru FAST pe GPU
+static short2* d_corners = nullptr; // Colțurile detectate de FAST pe GPU
+static int* d_counter = nullptr; // Contorul colțurilor detectate pe GPU
 const int MAX_CORNERS = 20000; // Limita hard de puncte de pe GPU
 
-// --- KERNEL FAST (CORNER DETECTION) ---
-__global__ void fastKernel(const unsigned char* __restrict__ image, int step, int rows, int cols, int threshold, short2* __restrict__ corners, int* __restrict__ counter, int max_points) {
+__global__ void fastKernel(const unsigned char* __restrict__ image, int step, 
+    int rows, int cols, int threshold, short2* __restrict__ corners, int* __restrict__ counter, int max_points) 
+{
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    // Bordura de siguranta (FAST vrea 3, noi punem 4)
     if (x < 4 || x >= cols - 4 || y < 4 || y >= rows - 4) return;
 
-    const int center_idx = y * step + x;
-    const unsigned char p = image[center_idx];
+    const int center_idx = y * step + x; // Indexul pixelului central
+    const unsigned char p = image[center_idx]; // Valoarea pixelului central
+
+    // Definirea pragurilor (mai intunecat sau mai luminos)
     int lower = (int)p - threshold;
     int upper = (int)p + threshold;
 
@@ -49,7 +51,7 @@ __global__ void fastKernel(const unsigned char* __restrict__ image, int step, in
     int consecutive = 0;
     bool is_corner = false;
     
-    // Check Darker
+    // verific daca exista 9 pixeli consecutivi mai intunecati
     for(int i=0; i<27; i++) { 
         int k = i % 16;
         int val = image[(y + c_circle_offsets[k][1]) * step + (x + c_circle_offsets[k][0])];
@@ -73,6 +75,7 @@ __global__ void fastKernel(const unsigned char* __restrict__ image, int step, in
     }
 
     if (is_corner) {
+        // folosesc atomic pentru a evita conflictele intre thread-uri
         int idx = atomicAdd(counter, 1);
         if (idx < max_points) {
             corners[idx] = make_short2((short)x, (short)y);
@@ -80,19 +83,23 @@ __global__ void fastKernel(const unsigned char* __restrict__ image, int step, in
     }
 }
 
-// --- KERNEL DESCRIPTORI ---
-__global__ void computeDescriptorsKernel(const unsigned char* __restrict__ image, int step, const GpuPoint* __restrict__ keypoints, unsigned char* __restrict__ descriptors, int numKeypoints) {
+__global__ void computeDescriptorsKernel(const unsigned char* __restrict__ image, int step, 
+    const GpuPoint* __restrict__ keypoints, unsigned char* __restrict__ descriptors, int numKeypoints) 
+{
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= numKeypoints) return;
 
     float x = keypoints[idx].x;
     float y = keypoints[idx].y;
     float angle = keypoints[idx].angle * DEG2RAD;
-    float a = cosf(angle); float b = sinf(angle);
-    int cx = (int)(x + 0.5f); int cy = (int)(y + 0.5f);
-    int base_offset = cy * step + cx;
 
-    for (int i = 0; i < 32; ++i) {
+    float a = cosf(angle); float b = sinf(angle);
+
+    int cx = (int)(x + 0.5f); int cy = (int)(y + 0.5f); // aflam unde e centrul punctului din imagine
+
+    int base_offset = cy * step + cx; // base address in memorie
+
+    for (int i = 0; i < 32; ++i) { // calculez cei 32 de bytes ai descriptorului
         unsigned char byteVal = 0;
         for (int j = 0; j < 8; ++j) {
             int p_idx = ((i * 8) + j) * 4;
@@ -100,6 +107,9 @@ __global__ void computeDescriptorsKernel(const unsigned char* __restrict__ image
             int t1_y = (int)(c_pattern[p_idx] * b + c_pattern[p_idx+1] * a + 0.5f);
             int t2_x = (int)(c_pattern[p_idx+2] * a - c_pattern[p_idx+3] * b + 0.5f);
             int t2_y = (int)(c_pattern[p_idx+2] * b + c_pattern[p_idx+3] * a + 0.5f);
+
+            // compar pixelii si setez bitul corespunzator
+            // image[] ia direct din vram
             if (image[base_offset + t1_y * step + t1_x] < image[base_offset + t2_y * step + t2_x]) {
                 byteVal |= (1 << j);
             }
@@ -108,11 +118,7 @@ __global__ void computeDescriptorsKernel(const unsigned char* __restrict__ image
     }
 }
 
-// --- FUNCTII HOST ---
-
-void copyPatternToGpu(const int* hostPattern, int nPoints) {
-    cudaMemcpyToSymbol(c_pattern, hostPattern, 256 * 4 * sizeof(int));
-}
+void copyPatternToGpu(const int* hostPattern, int nPoints) {cudaMemcpyToSymbol(c_pattern, hostPattern, 256 * 4 * sizeof(int));}
 
 void copyCircleOffsetsToGpu() {
     const int host_offsets[16][2] = {{0,-3},{1,-3},{2,-2},{3,-1},{3,0},{3,1},{2,2},{1,3},{0,3},{-1,3},{-2,2},{-3,1},{-3,0},{-3,-1},{-2,-2},{-1,-3}};
