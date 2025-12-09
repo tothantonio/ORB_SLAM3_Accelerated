@@ -4,24 +4,18 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <iostream>
-
 #include "ORBextractor.h"
-
 #include <chrono>
-
 #include "OrbCuda.h"
-
 
 using namespace cv;
 using namespace std;
 
 namespace ORB_SLAM3
 {
-
     const int PATCH_SIZE = 31; // dimensitunea patratului din jurul keypoint-ului
     const int HALF_PATCH_SIZE = 15;
     const int EDGE_THRESHOLD = 19;
-
 
     static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max) // calculeaza unghiul unui keypoint
     // necesar pentru ca descriptorii ORB sa fie invariant la rotatie
@@ -52,49 +46,6 @@ namespace ORB_SLAM3
 
         return fastAtan2((float)m_01, (float)m_10);
     }
-
-
-    const float factorPI = (float)(CV_PI/180.f);
-    static void computeOrbDescriptor(const KeyPoint& kpt, const Mat& img, const Point* pattern, uchar* desc)
-    {
-        float angle = (float)kpt.angle*factorPI;
-        float a = (float)cos(angle), b = (float)sin(angle);
-
-        const uchar* center = &img.at<uchar>(cvRound(kpt.pt.y), cvRound(kpt.pt.x));
-        const int step = (int)img.step;
-
-#define GET_VALUE(idx) \
-        center[cvRound(pattern[idx].x*b + pattern[idx].y*a)*step + \
-               cvRound(pattern[idx].x*a - pattern[idx].y*b)]
-
-
-        for (int i = 0; i < 32; ++i, pattern += 16)
-        {
-            int t0, t1, val;
-            t0 = GET_VALUE(0); t1 = GET_VALUE(1);
-            val = t0 < t1;
-            t0 = GET_VALUE(2); t1 = GET_VALUE(3);
-            val |= (t0 < t1) << 1;
-            t0 = GET_VALUE(4); t1 = GET_VALUE(5);
-            val |= (t0 < t1) << 2;
-            t0 = GET_VALUE(6); t1 = GET_VALUE(7);
-            val |= (t0 < t1) << 3;
-            t0 = GET_VALUE(8); t1 = GET_VALUE(9);
-            val |= (t0 < t1) << 4;
-            t0 = GET_VALUE(10); t1 = GET_VALUE(11);
-            val |= (t0 < t1) << 5;
-            t0 = GET_VALUE(12); t1 = GET_VALUE(13);
-            val |= (t0 < t1) << 6;
-            t0 = GET_VALUE(14); t1 = GET_VALUE(15);
-            val |= (t0 < t1) << 7;
-
-            desc[i] = (uchar)val;
-        }
-
-#undef GET_VALUE
-    }
-
-
     static int bit_pattern_31_[256*4] =
             {
                     8,-3, 9,5/*mean (0), correlation (0)*/,
@@ -398,7 +349,6 @@ namespace ORB_SLAM3
         std::copy(pattern0, pattern0 + npoints, std::back_inserter(pattern));
 
         copyPatternToGpu((const int*)bit_pattern_31_, 256 * 4);
-        copyCircleOffsetsToGpu(); 
 
         //This is for orientation
         // pre-compute the end of a row in a circular patch
@@ -429,307 +379,6 @@ namespace ORB_SLAM3
         }
     }
 
-    void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNode &n3, ExtractorNode &n4)
-    {
-        const int halfX = ceil(static_cast<float>(UR.x-UL.x)/2);
-        const int halfY = ceil(static_cast<float>(BR.y-UL.y)/2);
-
-        //Define boundaries of childs
-        n1.UL = UL;
-        n1.UR = cv::Point2i(UL.x+halfX,UL.y);
-        n1.BL = cv::Point2i(UL.x,UL.y+halfY);
-        n1.BR = cv::Point2i(UL.x+halfX,UL.y+halfY);
-        n1.vKeys.reserve(vKeys.size());
-
-        n2.UL = n1.UR;
-        n2.UR = UR;
-        n2.BL = n1.BR;
-        n2.BR = cv::Point2i(UR.x,UL.y+halfY);
-        n2.vKeys.reserve(vKeys.size());
-
-        n3.UL = n1.BL;
-        n3.UR = n1.BR;
-        n3.BL = BL;
-        n3.BR = cv::Point2i(n1.BR.x,BL.y);
-        n3.vKeys.reserve(vKeys.size());
-
-        n4.UL = n3.UR;
-        n4.UR = n2.BR;
-        n4.BL = n3.BR;
-        n4.BR = BR;
-        n4.vKeys.reserve(vKeys.size());
-
-        //Associate points to childs
-        for(size_t i=0;i<vKeys.size();i++)
-        {
-            const cv::KeyPoint &kp = vKeys[i];
-            if(kp.pt.x<n1.UR.x)
-            {
-                if(kp.pt.y<n1.BR.y)
-                    n1.vKeys.push_back(kp);
-                else
-                    n3.vKeys.push_back(kp);
-            }
-            else if(kp.pt.y<n1.BR.y)
-                n2.vKeys.push_back(kp);
-            else
-                n4.vKeys.push_back(kp);
-        }
-
-        if(n1.vKeys.size()==1)
-            n1.bNoMore = true;
-        if(n2.vKeys.size()==1)
-            n2.bNoMore = true;
-        if(n3.vKeys.size()==1)
-            n3.bNoMore = true;
-        if(n4.vKeys.size()==1)
-            n4.bNoMore = true;
-
-    }
-
-    static bool compareNodes(pair<int,ExtractorNode*>& e1, pair<int,ExtractorNode*>& e2){
-        if(e1.first < e2.first){
-            return true;
-        }
-        else if(e1.first > e2.first){
-            return false;
-        }
-        else{
-            if(e1.second->UL.x < e2.second->UL.x){
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-    }
-
-    vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
-                                                         const int &maxX, const int &minY, const int &maxY, const int &N, const int &level)
-    {
-        // Compute how many initial nodes
-        const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
-
-        const float hX = static_cast<float>(maxX-minX)/nIni;
-
-        list<ExtractorNode> lNodes;
-
-        vector<ExtractorNode*> vpIniNodes;
-        vpIniNodes.resize(nIni);
-
-        for(int i=0; i<nIni; i++)
-        {
-            ExtractorNode ni;
-            ni.UL = cv::Point2i(hX*static_cast<float>(i),0);
-            ni.UR = cv::Point2i(hX*static_cast<float>(i+1),0);
-            ni.BL = cv::Point2i(ni.UL.x,maxY-minY);
-            ni.BR = cv::Point2i(ni.UR.x,maxY-minY);
-            ni.vKeys.reserve(vToDistributeKeys.size());
-
-            lNodes.push_back(ni);
-            vpIniNodes[i] = &lNodes.back();
-        }
-
-        //Associate points to childs
-        for(size_t i=0;i<vToDistributeKeys.size();i++)
-        {
-            const cv::KeyPoint &kp = vToDistributeKeys[i];
-            vpIniNodes[kp.pt.x/hX]->vKeys.push_back(kp);
-        }
-
-        list<ExtractorNode>::iterator lit = lNodes.begin();
-
-        while(lit!=lNodes.end())
-        {
-            if(lit->vKeys.size()==1)
-            {
-                lit->bNoMore=true;
-                lit++;
-            }
-            else if(lit->vKeys.empty())
-                lit = lNodes.erase(lit);
-            else
-                lit++;
-        }
-
-        bool bFinish = false;
-
-        int iteration = 0;
-
-        vector<pair<int,ExtractorNode*> > vSizeAndPointerToNode;
-        vSizeAndPointerToNode.reserve(lNodes.size()*4);
-
-        while(!bFinish)
-        {
-            iteration++;
-
-            int prevSize = lNodes.size();
-
-            lit = lNodes.begin();
-
-            int nToExpand = 0;
-
-            vSizeAndPointerToNode.clear();
-
-            while(lit!=lNodes.end())
-            {
-                if(lit->bNoMore)
-                {
-                    // If node only contains one point do not subdivide and continue
-                    lit++;
-                    continue;
-                }
-                else
-                {
-                    // If more than one point, subdivide
-                    ExtractorNode n1,n2,n3,n4;
-                    lit->DivideNode(n1,n2,n3,n4);
-
-                    // Add childs if they contain points
-                    if(n1.vKeys.size()>0)
-                    {
-                        lNodes.push_front(n1);
-                        if(n1.vKeys.size()>1)
-                        {
-                            nToExpand++;
-                            vSizeAndPointerToNode.push_back(make_pair(n1.vKeys.size(),&lNodes.front()));
-                            lNodes.front().lit = lNodes.begin();
-                        }
-                    }
-                    if(n2.vKeys.size()>0)
-                    {
-                        lNodes.push_front(n2);
-                        if(n2.vKeys.size()>1)
-                        {
-                            nToExpand++;
-                            vSizeAndPointerToNode.push_back(make_pair(n2.vKeys.size(),&lNodes.front()));
-                            lNodes.front().lit = lNodes.begin();
-                        }
-                    }
-                    if(n3.vKeys.size()>0)
-                    {
-                        lNodes.push_front(n3);
-                        if(n3.vKeys.size()>1)
-                        {
-                            nToExpand++;
-                            vSizeAndPointerToNode.push_back(make_pair(n3.vKeys.size(),&lNodes.front()));
-                            lNodes.front().lit = lNodes.begin();
-                        }
-                    }
-                    if(n4.vKeys.size()>0)
-                    {
-                        lNodes.push_front(n4);
-                        if(n4.vKeys.size()>1)
-                        {
-                            nToExpand++;
-                            vSizeAndPointerToNode.push_back(make_pair(n4.vKeys.size(),&lNodes.front()));
-                            lNodes.front().lit = lNodes.begin();
-                        }
-                    }
-
-                    lit=lNodes.erase(lit);
-                    continue;
-                }
-            }
-
-            // Finish if there are more nodes than required features
-            // or all nodes contain just one point
-            if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
-            {
-                bFinish = true;
-            }
-            else if(((int)lNodes.size()+nToExpand*3)>N)
-            {
-
-                while(!bFinish)
-                {
-
-                    prevSize = lNodes.size();
-
-                    vector<pair<int,ExtractorNode*> > vPrevSizeAndPointerToNode = vSizeAndPointerToNode;
-                    vSizeAndPointerToNode.clear();
-
-                    sort(vPrevSizeAndPointerToNode.begin(),vPrevSizeAndPointerToNode.end(),compareNodes);
-                    for(int j=vPrevSizeAndPointerToNode.size()-1;j>=0;j--)
-                    {
-                        ExtractorNode n1,n2,n3,n4;
-                        vPrevSizeAndPointerToNode[j].second->DivideNode(n1,n2,n3,n4);
-
-                        // Add childs if they contain points
-                        if(n1.vKeys.size()>0)
-                        {
-                            lNodes.push_front(n1);
-                            if(n1.vKeys.size()>1)
-                            {
-                                vSizeAndPointerToNode.push_back(make_pair(n1.vKeys.size(),&lNodes.front()));
-                                lNodes.front().lit = lNodes.begin();
-                            }
-                        }
-                        if(n2.vKeys.size()>0)
-                        {
-                            lNodes.push_front(n2);
-                            if(n2.vKeys.size()>1)
-                            {
-                                vSizeAndPointerToNode.push_back(make_pair(n2.vKeys.size(),&lNodes.front()));
-                                lNodes.front().lit = lNodes.begin();
-                            }
-                        }
-                        if(n3.vKeys.size()>0)
-                        {
-                            lNodes.push_front(n3);
-                            if(n3.vKeys.size()>1)
-                            {
-                                vSizeAndPointerToNode.push_back(make_pair(n3.vKeys.size(),&lNodes.front()));
-                                lNodes.front().lit = lNodes.begin();
-                            }
-                        }
-                        if(n4.vKeys.size()>0)
-                        {
-                            lNodes.push_front(n4);
-                            if(n4.vKeys.size()>1)
-                            {
-                                vSizeAndPointerToNode.push_back(make_pair(n4.vKeys.size(),&lNodes.front()));
-                                lNodes.front().lit = lNodes.begin();
-                            }
-                        }
-
-                        lNodes.erase(vPrevSizeAndPointerToNode[j].second->lit);
-
-                        if((int)lNodes.size()>=N)
-                            break;
-                    }
-
-                    if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
-                        bFinish = true;
-
-                }
-            }
-        }
-
-        // Retain the best point in each node
-        vector<cv::KeyPoint> vResultKeys;
-        vResultKeys.reserve(nfeatures);
-        for(list<ExtractorNode>::iterator lit=lNodes.begin(); lit!=lNodes.end(); lit++)
-        {
-            vector<cv::KeyPoint> &vNodeKeys = lit->vKeys;
-            cv::KeyPoint* pKP = &vNodeKeys[0];
-            float maxResponse = pKP->response;
-
-            for(size_t k=1;k<vNodeKeys.size();k++)
-            {
-                if(vNodeKeys[k].response>maxResponse)
-                {
-                    pKP = &vNodeKeys[k];
-                    maxResponse = vNodeKeys[k].response;
-                }
-            }
-
-            vResultKeys.push_back(*pKP);
-        }
-
-        return vResultKeys;
-    }
-
     void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoints)
     {
         allKeypoints.resize(nlevels);
@@ -742,8 +391,7 @@ namespace ORB_SLAM3
             const int maxBorderX = mvImagePyramid[level].cols - EDGE_THRESHOLD + 3;
             const int maxBorderY = mvImagePyramid[level].rows - EDGE_THRESHOLD + 3;
 
-            // 1. FOLOSIM FAST DE PE CPU (OPENCV) - E MAI SIGUR PENTRU TRACKING
-            // OpenCV FAST are Non-Max Suppression incorporat, ceea ce e crucial
+            // 1. FOLOSIM FAST DE PE CPU (OPENCV)
             vector<cv::KeyPoint> vToDistributeKeys;
             vToDistributeKeys.reserve(nfeatures * 10);
             
@@ -753,8 +401,8 @@ namespace ORB_SLAM3
                 FAST(mvImagePyramid[level], vToDistributeKeys, minThFAST, true);
             }
 
-            // 2. GRID FILTERING (Rapid pe CPU)
-            // Inlocuim DistributeOctTree cu ceva simplu
+            // 2. GRID FILTERING
+            // Inlocuim DistributeOctTree
             vector<KeyPoint> & keypoints = allKeypoints[level];
             keypoints.reserve(nfeatures);
 
@@ -775,7 +423,7 @@ namespace ORB_SLAM3
                 }
             }
 
-            // Luam cel mai bun punct din fiecare celula (Response maxim)
+            // Luam cel mai bun punct din fiecare celula
             for(auto& cell : grid) {
                 if(cell.empty()) continue;
                 
@@ -791,7 +439,7 @@ namespace ORB_SLAM3
             }
         }
 
-        // 3. Calcul orientare (OBLIGATORIU)
+        // 3. Calcul orientare
         for (int level = 0; level < nlevels; ++level)
         {
             if (!allKeypoints[level].empty())
@@ -799,35 +447,26 @@ namespace ORB_SLAM3
         }
     }
 
-    static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Mat& descriptors,
-                                   const vector<Point>& pattern)
-    {
-        descriptors = Mat::zeros((int)keypoints.size(), 32, CV_8UC1);
-
-        for (size_t i = 0; i < keypoints.size(); i++)
-            computeOrbDescriptor(keypoints[i], image, &pattern[0], descriptors.ptr((int)i));
-    }
-
    int ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                               OutputArray _descriptors, std::vector<int> &vLappingArea)
 {
 
-    cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
+    // cout << "[ORBextractor]: Max Features: " << nfeatures << endl;
     if(_image.empty()) return -1;
 
     Mat image = _image.getMat();
     assert(image.type() == CV_8UC1 );
 
-    // --- TIMP TOTAL START ---
+    // timp total
     auto t_start = std::chrono::steady_clock::now();
 
-    // 1. PYRAMID (CPU)
+    // 1. PYRAMID 
     auto t1 = std::chrono::steady_clock::now();
     ComputePyramid(image);
     auto t2 = std::chrono::steady_clock::now();
     double t_pyr = std::chrono::duration<double, std::milli>(t2 - t1).count();
 
-    // 2. KEYPOINTS (CPU - Grid Optimizat)
+    // 2. KEYPOINTS
     auto t3 = std::chrono::steady_clock::now();
     vector < vector<KeyPoint> > allKeypoints;
     ComputeKeyPointsOctTree(allKeypoints);
@@ -849,7 +488,7 @@ namespace ORB_SLAM3
 
     _keypoints = vector<cv::KeyPoint>(nkeypoints);
     int offset = 0;
-    int monoIndex = 0, stereoIndex = nkeypoints-1;
+    int monoIndex = 0;
 
     // Variabile pentru cumularea timpului pe nivele
     double t_blur = 0.0;
@@ -864,7 +503,6 @@ namespace ORB_SLAM3
         if(nkeypointsLevel==0)
             continue;
 
-        // 3. BLUR (CPU)
         auto tb1 = std::chrono::steady_clock::now();
         Mat workingMat = mvImagePyramid[level].clone();
         GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
@@ -873,7 +511,6 @@ namespace ORB_SLAM3
 
         Mat desc = cv::Mat(nkeypointsLevel, 32, CV_8U);
 
-        // 4. DESCRIPTORS (GPU)
         auto td1 = std::chrono::steady_clock::now();
         launchOrbKernel(workingMat, keypoints, desc); 
         auto td2 = std::chrono::steady_clock::now();
@@ -882,21 +519,15 @@ namespace ORB_SLAM3
         offset += nkeypointsLevel;
         float scale = mvScaleFactor[level];
 
-        // 5. COPY (CPU Overhead)
         auto tc1 = std::chrono::steady_clock::now();
         int i = 0;
-        for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
-             keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint){
-            if (level != 0) keypoint->pt *= scale;
-            if(keypoint->pt.x >= vLappingArea[0] && keypoint->pt.x <= vLappingArea[1]){
-                _keypoints.at(stereoIndex) = (*keypoint);
-                desc.row(i).copyTo(descriptors.row(stereoIndex));
-                stereoIndex--;
-            } else{
-                _keypoints.at(monoIndex) = (*keypoint);
-                desc.row(i).copyTo(descriptors.row(monoIndex));
-                monoIndex++;
+        for (auto& keypoint : keypoints) {
+            if (level != 0) {
+                keypoint.pt *= scale;
             }
+            _keypoints[monoIndex] = keypoint;            
+            desc.row(i).copyTo(descriptors.row(monoIndex));
+            monoIndex++;
             i++;
         }
         auto tc2 = std::chrono::steady_clock::now();
@@ -908,16 +539,16 @@ namespace ORB_SLAM3
 
     // --- RAPORT COMPLET ---
     cout << "========================================" << endl;
-    cout << " [CPU] 1. Pyramid Build:  " << t_pyr << " ms" << endl;
-    cout << " [CPU] 2. KeyPoints Grid: " << t_kps << " ms" << endl;
-    cout << " [CPU] 3. Gaussian Blur:  " << t_blur << " ms" << endl;
-    cout << " [GPU] 4. ORB Kernel:     " << t_desc << " ms (OPTIMIZAT!)" << endl;
-    cout << " [CPU] 5. Data Copying:   " << t_copy << " ms" << endl;
+    cout << " 1. Pyramid Build:  " << t_pyr << " ms" << endl;
+    cout << " 2. KeyPoints Grid: " << t_kps << " ms" << endl;
+    cout << " 3. Gaussian Blur:  " << t_blur << " ms" << endl;
+    cout << " 4. ORB Extractor:  " << t_desc << " ms" << endl;
+    cout << " 5. Data Copying:   " << t_copy << " ms" << endl;
     cout << " --------------------------------------" << endl;
     cout << " TOTAL FRAME TIME:        " << t_total << " ms" << endl;
     cout << "========================================" << endl;
 
-    cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
+    // cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
 
     return monoIndex;
 }
@@ -936,7 +567,6 @@ namespace ORB_SLAM3
             if( level != 0 )
             {
                 resize(mvImagePyramid[level-1], mvImagePyramid[level], sz, 0, 0, INTER_LINEAR);
-
                 copyMakeBorder(mvImagePyramid[level], temp, EDGE_THRESHOLD, EDGE_THRESHOLD, EDGE_THRESHOLD, EDGE_THRESHOLD,
                                BORDER_REFLECT_101+BORDER_ISOLATED);
             }

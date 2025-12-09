@@ -34,7 +34,7 @@ Camera.height: 376
 
 # ORB Extractor: Number of features per image
 # original 2000
-ORBextractor.nFeatures: 30000
+ORBextractor.nFeatures: 10000
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2

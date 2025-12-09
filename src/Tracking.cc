@@ -265,35 +265,35 @@ void Tracking::PrintTimeStats()
     TrackStats2File();
     LocalMapStats2File();
 
-    ofstream f("ExecMean.txt");
-    f << fixed;
+    // ofstream f("ExecMean.txt");
+    // f << fixed;
 
-    std::cout << std::endl << " TIME STATS in ms (mean)" << std::endl;
-    f << " TIME STATS in ms (mean)" << std::endl;
+    // std::cout << std::endl << " TIME STATS in ms (mean)" << std::endl;
+    // f << " TIME STATS in ms (mean)" << std::endl;
 
-    cout << "OpenCV version: " << CV_VERSION << endl;
-    f << "OpenCV version: " << CV_VERSION << endl;
+    // cout << "OpenCV version: " << CV_VERSION << endl;
+    // f << "OpenCV version: " << CV_VERSION << endl;
 
-    std::cout << "---------------------------" << std::endl;
-    std::cout << "Tracking" << std::setprecision(5) << std::endl << std::endl;
+    // std::cout << "---------------------------" << std::endl;
+    // std::cout << "Tracking" << std::setprecision(5) << std::endl << std::endl;
 
-    f << "---------------------------" << std::endl;
-    f << "Tracking" << std::setprecision(5) << std::endl << std::endl;
+    // f << "---------------------------" << std::endl;
+    // f << "Tracking" << std::setprecision(5) << std::endl << std::endl;
 
-    double average;
+    // double average;
 
-    average = calcAverage(vdORBExtract_ms);
-    std::cout << "ORB Extraction: " << average << std::endl;
-    f << "ORB Extraction: " << average << std::endl;
+    // average = calcAverage(vdORBExtract_ms);
+    // std::cout << "ORB Extraction: " << average << std::endl;
+    // f << "ORB Extraction: " << average << std::endl;
 
     // average = calcAverage(vdTrackTotal_ms);
     // std::cout << "Total Tracking: " << average << std::endl;
     // f << "Total Tracking: " << average << std::endl;
 
     // Local Mapping
-    std::cout << "Local Mapping" << std::endl << std::endl;
+    // std::cout << "Local Mapping" << std::endl << std::endl;
 
-    f << std::endl << "Local Mapping" << std::endl << std::endl;
+    // f << std::endl << "Local Mapping" << std::endl << std::endl;
 
     // average = calcAverage(mpLocalMapper->vdKFInsert_ms);
     // std::cout << "KF Insertion: " << average << std::endl;
@@ -307,9 +307,9 @@ void Tracking::PrintTimeStats()
     // std::cout << "MP Creation: " << average << std::endl;
     // f << "MP Creation: " << average << std::endl;
 
-    average = calcAverage(mpLocalMapper->vdLBA_ms);
-    std::cout << "LBA: " << average << std::endl;
-    f << "LBA: " << average << std::endl;
+    // average = calcAverage(mpLocalMapper->vdLBA_ms);
+    // std::cout << "LBA: " << average << std::endl;
+    // f << "LBA: " << average << std::endl;
 
     // average = calcAverage(mpLocalMapper->vdKFCulling_ms);
     // std::cout << "KF Culling: " << average << std::endl;
@@ -319,7 +319,7 @@ void Tracking::PrintTimeStats()
     // std::cout << "Total Local Mapping: " << average << std::endl;
     // f << "Total Local Mapping: " << average << std::endl;
 
-    f.close();
+    // f.close();
 }
 
 
