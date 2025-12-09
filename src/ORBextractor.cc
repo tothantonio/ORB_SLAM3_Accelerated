@@ -402,40 +402,47 @@ namespace ORB_SLAM3
             }
 
             // 2. GRID FILTERING
-            // Inlocuim DistributeOctTree
             vector<KeyPoint> & keypoints = allKeypoints[level];
             keypoints.reserve(nfeatures);
-
-            const int scaledPatchSize = PATCH_SIZE * mvScaleFactor[level];
             
             // Facem un grid simplu
             int nCols = mvImagePyramid[level].cols / W;
             int nRows = mvImagePyramid[level].rows / W;
-            vector<vector<cv::KeyPoint>> grid(nCols * nRows);
 
-            for(auto& kp : vToDistributeKeys) {
-                // Verificare limite stricta
-                if(kp.pt.x < minBorderX || kp.pt.x >= maxBorderX || kp.pt.y < minBorderY || kp.pt.y >= maxBorderY) continue;
+            // Pastram doar 1 punct per celula direct.
+            
+            // Grid de pointeri sau indici (initial -1)
+            vector<int> gridBestIdx(nCols * nRows, -1);
+            vector<float> gridBestResponse(nCols * nRows, -1.0f);
+
+            // Trecem o singura data prin puncte
+            for(size_t i=0; i<vToDistributeKeys.size(); ++i) {
+                const auto& kp = vToDistributeKeys[i];
+                
+                if(kp.pt.x < minBorderX || kp.pt.x >= maxBorderX || 
+                   kp.pt.y < minBorderY || kp.pt.y >= maxBorderY) continue;
                 
                 int idx = (int)(kp.pt.y / W) * nCols + (int)(kp.pt.x / W);
-                if(idx >= 0 && idx < grid.size()) {
-                    grid[idx].push_back(kp);
+                
+                if(idx >= 0 && idx < (int)gridBestIdx.size()) {
+                    // Daca am gasit un punct mai bun in aceeasi celula, il inlocuim
+                    if(kp.response > gridBestResponse[idx]) {
+                        gridBestResponse[idx] = kp.response;
+                        gridBestIdx[idx] = i;
+                    }
                 }
             }
+            // Colectam rezultatele
+            keypoints.reserve(nfeatures);
+            const int scaledPatchSize = PATCH_SIZE * mvScaleFactor[level];
 
-            // Luam cel mai bun punct din fiecare celula
-            for(auto& cell : grid) {
-                if(cell.empty()) continue;
-                
-                // Gasim punctul cu cel mai mare response
-                auto bestKp = cell[0];
-                for(size_t k=1; k<cell.size(); k++) {
-                    if(cell[k].response > bestKp.response) bestKp = cell[k];
+            for(int idx : gridBestIdx) {
+                if(idx != -1) {
+                    auto& kp = vToDistributeKeys[idx];
+                    kp.octave = level;
+                    kp.size = scaledPatchSize;
+                    keypoints.push_back(kp);
                 }
-                
-                bestKp.octave = level;
-                bestKp.size = scaledPatchSize;
-                keypoints.push_back(bestKp);
             }
         }
 
