@@ -4,6 +4,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include "ORBextractor.h"
 #include <chrono>
 #include "OrbCuda.h"
@@ -410,7 +411,6 @@ namespace ORB_SLAM3
             int nRows = mvImagePyramid[level].rows / W;
 
             // Pastram doar 1 punct per celula direct.
-            
             // Grid de pointeri sau indici (initial -1)
             vector<int> gridBestIdx(nCols * nRows, -1);
             vector<float> gridBestResponse(nCols * nRows, -1.0f);
@@ -556,6 +556,20 @@ namespace ORB_SLAM3
     cout << "========================================" << endl;
 
     // cout << "[ORBextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
+
+    std::ofstream logFile("orb_timing2.txt", std::ios::app);
+
+    logFile << "========================================\n";
+    logFile << " 1. Pyramid Build:  " << t_pyr << " ms\n";
+    logFile << " 2. KeyPoints Grid: " << t_kps << " ms\n";
+    logFile << " 3. Gaussian Blur:  " << t_blur << " ms\n";
+    logFile << " 4. ORB Extractor:  " << t_desc << " ms\n";
+    logFile << " 5. Data Copying:   " << t_copy << " ms\n";
+    logFile << " --------------------------------------\n";
+    logFile << " TOTAL FRAME TIME:  " << t_total << " ms\n";
+    logFile << "========================================\n\n";
+
+    logFile.close();
 
     return monoIndex;
 }

@@ -13,8 +13,8 @@ static size_t g_d_image_size = 0; // Dimensiunea imaginii pe GPU
 static GpuPoint* g_d_keypoints = nullptr; // Keypoint-urile pe GPU
 static size_t g_d_keypoints_capacity = 0; // Capacitatea buffer-ului de keypoint-uri
 static unsigned char* g_d_descriptors = nullptr; // Descriptorii pe GPU
-static size_t g_d_descriptors_capacity = 0; // Capacitatea buffer-ului de descriptori
 
+// __restrict__ hint pt compilator ca pointerii nu se suprapun in memorie
 __global__ void computeDescriptorsKernel(const unsigned char* __restrict__ image, int step, 
     const GpuPoint* __restrict__ keypoints, unsigned char* __restrict__ descriptors, int numKeypoints) 
 {
@@ -57,26 +57,20 @@ void launchOrbKernel(const cv::Mat& image, const std::vector<cv::KeyPoint>& keyp
     int numKeypoints = keypoints.size();
     if (numKeypoints == 0) return;
 
-    size_t needed_image_size = image.step * image.rows;
-    if (needed_image_size > g_d_image_size) {
-        if (g_d_image) 
-            cudaFree(g_d_image);
-
-        cudaMalloc((void**)&g_d_image, needed_image_size);
-        g_d_image_size = needed_image_size;
-    }
+    size_t image_size = image.rows * image.step;
+    if (!g_d_image) {
+        cudaMalloc((void**)&g_d_image, image_size);
+        g_d_image_size = image_size;
+    } 
 
     if (numKeypoints > g_d_keypoints_capacity) {
-        if (g_d_keypoints) 
-            cudaFree(g_d_keypoints);
-        if (g_d_descriptors) 
-            cudaFree(g_d_descriptors);
-
+        if (g_d_keypoints) cudaFree(g_d_keypoints);
+        if (g_d_descriptors) cudaFree(g_d_descriptors);
+        
         size_t new_capacity = (size_t)(numKeypoints * 1.5);
         cudaMalloc((void**)&g_d_keypoints, new_capacity * sizeof(GpuPoint));
-        cudaMalloc((void**)&g_d_descriptors, new_capacity * 32 * sizeof(unsigned char));
+        cudaMalloc((void**)&g_d_descriptors, new_capacity * 32);
         g_d_keypoints_capacity = new_capacity;
-        g_d_descriptors_capacity = new_capacity;
     }
 
     std::vector<GpuPoint> rawPoints(numKeypoints);
@@ -86,7 +80,7 @@ void launchOrbKernel(const cv::Mat& image, const std::vector<cv::KeyPoint>& keyp
         rawPoints[i].angle = keypoints[i].angle;
     }
 
-    cudaMemcpy(g_d_image, image.data, needed_image_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_d_image, image.data, image_size, cudaMemcpyHostToDevice);
     cudaMemcpy(g_d_keypoints, rawPoints.data(), numKeypoints * sizeof(GpuPoint), cudaMemcpyHostToDevice);
 
     int threadsPerBlock = 256;
@@ -94,7 +88,7 @@ void launchOrbKernel(const cv::Mat& image, const std::vector<cv::KeyPoint>& keyp
 
     computeDescriptorsKernel<<<blocksPerGrid, threadsPerBlock>>>(g_d_image, image.step, g_d_keypoints, g_d_descriptors, numKeypoints);
 
-    cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
 
     cudaMemcpy(descriptors.data, g_d_descriptors, numKeypoints * 32, cudaMemcpyDeviceToHost);
 }
