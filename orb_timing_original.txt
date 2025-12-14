@@ -1,0 +1,660 @@
+========================================
+ 1. Pyramid Build:  2.66815 ms
+ 2. KeyPoints Grid: 24.8603 ms
+ 3. Gaussian Blur:  5.66669 ms
+ 4. ORB Extractor:  26.9949 ms
+ 5. Data Copying:   3.06841 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  63.4103 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  2.0077 ms
+ 2. KeyPoints Grid: 23.8981 ms
+ 3. Gaussian Blur:  6.15576 ms
+ 4. ORB Extractor:  27.3552 ms
+ 5. Data Copying:   3.07023 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  62.5708 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.42477 ms
+ 2. KeyPoints Grid: 23.6106 ms
+ 3. Gaussian Blur:  3.32027 ms
+ 4. ORB Extractor:  27.3011 ms
+ 5. Data Copying:   3.2466 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  58.9469 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45799 ms
+ 2. KeyPoints Grid: 24.8263 ms
+ 3. Gaussian Blur:  4.05269 ms
+ 4. ORB Extractor:  27.7112 ms
+ 5. Data Copying:   3.25799 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  61.3704 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.51179 ms
+ 2. KeyPoints Grid: 24.8367 ms
+ 3. Gaussian Blur:  2.41443 ms
+ 4. ORB Extractor:  27.2769 ms
+ 5. Data Copying:   3.16438 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  59.266 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.68662 ms
+ 2. KeyPoints Grid: 24.9065 ms
+ 3. Gaussian Blur:  2.7774 ms
+ 4. ORB Extractor:  27.2954 ms
+ 5. Data Copying:   3.11705 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  59.8517 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.6935 ms
+ 2. KeyPoints Grid: 24.7925 ms
+ 3. Gaussian Blur:  2.54353 ms
+ 4. ORB Extractor:  27.4744 ms
+ 5. Data Copying:   3.12134 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  59.6953 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.52369 ms
+ 2. KeyPoints Grid: 25.1408 ms
+ 3. Gaussian Blur:  3.11673 ms
+ 4. ORB Extractor:  27.9502 ms
+ 5. Data Copying:   3.18714 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  60.9687 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.50811 ms
+ 2. KeyPoints Grid: 23.9659 ms
+ 3. Gaussian Blur:  2.24443 ms
+ 4. ORB Extractor:  26.4533 ms
+ 5. Data Copying:   2.98216 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  57.2168 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47018 ms
+ 2. KeyPoints Grid: 23.5163 ms
+ 3. Gaussian Blur:  2.246 ms
+ 4. ORB Extractor:  25.0904 ms
+ 5. Data Copying:   2.85815 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  55.2376 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47146 ms
+ 2. KeyPoints Grid: 22.2927 ms
+ 3. Gaussian Blur:  2.4248 ms
+ 4. ORB Extractor:  24.1788 ms
+ 5. Data Copying:   2.77801 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  53.2916 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46228 ms
+ 2. KeyPoints Grid: 22.1301 ms
+ 3. Gaussian Blur:  2.26619 ms
+ 4. ORB Extractor:  23.7042 ms
+ 5. Data Copying:   2.65989 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  52.3173 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47623 ms
+ 2. KeyPoints Grid: 20.2217 ms
+ 3. Gaussian Blur:  2.59848 ms
+ 4. ORB Extractor:  20.1907 ms
+ 5. Data Copying:   2.24974 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.922 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48321 ms
+ 2. KeyPoints Grid: 19.2126 ms
+ 3. Gaussian Blur:  2.6244 ms
+ 4. ORB Extractor:  19.7943 ms
+ 5. Data Copying:   2.27883 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.4512 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45527 ms
+ 2. KeyPoints Grid: 19.4185 ms
+ 3. Gaussian Blur:  2.57569 ms
+ 4. ORB Extractor:  19.4102 ms
+ 5. Data Copying:   2.20343 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.1358 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48782 ms
+ 2. KeyPoints Grid: 19.2291 ms
+ 3. Gaussian Blur:  2.22628 ms
+ 4. ORB Extractor:  19.2209 ms
+ 5. Data Copying:   2.13501 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.3803 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47594 ms
+ 2. KeyPoints Grid: 18.9296 ms
+ 3. Gaussian Blur:  2.59476 ms
+ 4. ORB Extractor:  19.294 ms
+ 5. Data Copying:   2.19415 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.5551 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.54788 ms
+ 2. KeyPoints Grid: 19.4906 ms
+ 3. Gaussian Blur:  2.60789 ms
+ 4. ORB Extractor:  19.7137 ms
+ 5. Data Copying:   2.21508 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.6475 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47332 ms
+ 2. KeyPoints Grid: 19.4174 ms
+ 3. Gaussian Blur:  2.25777 ms
+ 4. ORB Extractor:  19.6841 ms
+ 5. Data Copying:   2.3036 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.1945 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45869 ms
+ 2. KeyPoints Grid: 19.8568 ms
+ 3. Gaussian Blur:  2.82666 ms
+ 4. ORB Extractor:  20.3672 ms
+ 5. Data Copying:   2.36134 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.9305 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48199 ms
+ 2. KeyPoints Grid: 20.7461 ms
+ 3. Gaussian Blur:  2.43635 ms
+ 4. ORB Extractor:  21.0656 ms
+ 5. Data Copying:   2.4032 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  48.226 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47066 ms
+ 2. KeyPoints Grid: 21.3054 ms
+ 3. Gaussian Blur:  2.39302 ms
+ 4. ORB Extractor:  21.3444 ms
+ 5. Data Copying:   2.44998 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.0557 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.65541 ms
+ 2. KeyPoints Grid: 21.3675 ms
+ 3. Gaussian Blur:  2.54481 ms
+ 4. ORB Extractor:  21.4813 ms
+ 5. Data Copying:   2.53262 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.6522 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.4865 ms
+ 2. KeyPoints Grid: 21.0588 ms
+ 3. Gaussian Blur:  2.44614 ms
+ 4. ORB Extractor:  21.5138 ms
+ 5. Data Copying:   2.47584 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.0498 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.49476 ms
+ 2. KeyPoints Grid: 20.675 ms
+ 3. Gaussian Blur:  3.17002 ms
+ 4. ORB Extractor:  21.5208 ms
+ 5. Data Copying:   2.61112 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.5643 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46439 ms
+ 2. KeyPoints Grid: 20.5434 ms
+ 3. Gaussian Blur:  2.45824 ms
+ 4. ORB Extractor:  21.949 ms
+ 5. Data Copying:   2.50093 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  48.9943 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.51246 ms
+ 2. KeyPoints Grid: 21.2044 ms
+ 3. Gaussian Blur:  2.66357 ms
+ 4. ORB Extractor:  21.0665 ms
+ 5. Data Copying:   2.38249 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.0928 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46541 ms
+ 2. KeyPoints Grid: 21.7304 ms
+ 3. Gaussian Blur:  2.3012 ms
+ 4. ORB Extractor:  21.0858 ms
+ 5. Data Copying:   2.42077 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.0956 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.50663 ms
+ 2. KeyPoints Grid: 22.3473 ms
+ 3. Gaussian Blur:  2.37718 ms
+ 4. ORB Extractor:  20.9316 ms
+ 5. Data Copying:   2.47901 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  49.7256 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46522 ms
+ 2. KeyPoints Grid: 20.7683 ms
+ 3. Gaussian Blur:  2.26033 ms
+ 4. ORB Extractor:  20.1363 ms
+ 5. Data Copying:   2.32171 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  47.0017 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.50327 ms
+ 2. KeyPoints Grid: 20.2451 ms
+ 3. Gaussian Blur:  3.37903 ms
+ 4. ORB Extractor:  20.7781 ms
+ 5. Data Copying:   2.31308 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  48.2873 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.62261 ms
+ 2. KeyPoints Grid: 20.1241 ms
+ 3. Gaussian Blur:  2.26117 ms
+ 4. ORB Extractor:  20.6368 ms
+ 5. Data Copying:   2.35644 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  47.0611 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47437 ms
+ 2. KeyPoints Grid: 20.0437 ms
+ 3. Gaussian Blur:  2.20753 ms
+ 4. ORB Extractor:  20.4284 ms
+ 5. Data Copying:   2.27521 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.4789 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.49402 ms
+ 2. KeyPoints Grid: 19.961 ms
+ 3. Gaussian Blur:  2.29474 ms
+ 4. ORB Extractor:  20.4396 ms
+ 5. Data Copying:   2.31029 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.5559 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46189 ms
+ 2. KeyPoints Grid: 20.1557 ms
+ 3. Gaussian Blur:  2.36233 ms
+ 4. ORB Extractor:  20.3704 ms
+ 5. Data Copying:   2.32168 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.7268 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48503 ms
+ 2. KeyPoints Grid: 20.2428 ms
+ 3. Gaussian Blur:  2.04377 ms
+ 4. ORB Extractor:  20.3772 ms
+ 5. Data Copying:   2.28149 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.4832 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48292 ms
+ 2. KeyPoints Grid: 19.485 ms
+ 3. Gaussian Blur:  2.18474 ms
+ 4. ORB Extractor:  20.4157 ms
+ 5. Data Copying:   2.27592 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.8833 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46785 ms
+ 2. KeyPoints Grid: 19.3128 ms
+ 3. Gaussian Blur:  2.18906 ms
+ 4. ORB Extractor:  20.2172 ms
+ 5. Data Copying:   2.27403 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.5025 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47053 ms
+ 2. KeyPoints Grid: 19.114 ms
+ 3. Gaussian Blur:  2.19537 ms
+ 4. ORB Extractor:  20.3123 ms
+ 5. Data Copying:   2.2771 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.4093 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46036 ms
+ 2. KeyPoints Grid: 19.2195 ms
+ 3. Gaussian Blur:  2.21214 ms
+ 4. ORB Extractor:  20.3129 ms
+ 5. Data Copying:   2.32504 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.5685 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47101 ms
+ 2. KeyPoints Grid: 19.4249 ms
+ 3. Gaussian Blur:  2.1946 ms
+ 4. ORB Extractor:  20.3605 ms
+ 5. Data Copying:   2.24693 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.7442 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48772 ms
+ 2. KeyPoints Grid: 19.3236 ms
+ 3. Gaussian Blur:  2.18986 ms
+ 4. ORB Extractor:  20.1686 ms
+ 5. Data Copying:   2.29608 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.5201 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46353 ms
+ 2. KeyPoints Grid: 18.7192 ms
+ 3. Gaussian Blur:  2.18346 ms
+ 4. ORB Extractor:  19.4273 ms
+ 5. Data Copying:   2.16298 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.0092 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46503 ms
+ 2. KeyPoints Grid: 19.1019 ms
+ 3. Gaussian Blur:  2.24696 ms
+ 4. ORB Extractor:  19.5226 ms
+ 5. Data Copying:   2.22219 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.6227 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.4753 ms
+ 2. KeyPoints Grid: 19.0862 ms
+ 3. Gaussian Blur:  2.13501 ms
+ 4. ORB Extractor:  19.2621 ms
+ 5. Data Copying:   2.15463 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.1691 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46669 ms
+ 2. KeyPoints Grid: 19.5268 ms
+ 3. Gaussian Blur:  2.32159 ms
+ 4. ORB Extractor:  19.4669 ms
+ 5. Data Copying:   2.1979 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.0222 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46372 ms
+ 2. KeyPoints Grid: 18.9098 ms
+ 3. Gaussian Blur:  2.26321 ms
+ 4. ORB Extractor:  19.3871 ms
+ 5. Data Copying:   2.20634 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.2697 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45776 ms
+ 2. KeyPoints Grid: 19.1325 ms
+ 3. Gaussian Blur:  2.24235 ms
+ 4. ORB Extractor:  19.8993 ms
+ 5. Data Copying:   2.22635 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.9955 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.48145 ms
+ 2. KeyPoints Grid: 19.5417 ms
+ 3. Gaussian Blur:  2.32092 ms
+ 4. ORB Extractor:  20.2846 ms
+ 5. Data Copying:   2.29733 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.9745 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46218 ms
+ 2. KeyPoints Grid: 19.1987 ms
+ 3. Gaussian Blur:  2.42448 ms
+ 4. ORB Extractor:  20.1315 ms
+ 5. Data Copying:   2.30402 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.5694 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46273 ms
+ 2. KeyPoints Grid: 19.1515 ms
+ 3. Gaussian Blur:  2.38486 ms
+ 4. ORB Extractor:  20.2103 ms
+ 5. Data Copying:   2.35001 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.6152 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45424 ms
+ 2. KeyPoints Grid: 18.8125 ms
+ 3. Gaussian Blur:  2.31749 ms
+ 4. ORB Extractor:  19.7713 ms
+ 5. Data Copying:   2.31093 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  44.7175 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.46141 ms
+ 2. KeyPoints Grid: 19.0298 ms
+ 3. Gaussian Blur:  2.82429 ms
+ 4. ORB Extractor:  19.7768 ms
+ 5. Data Copying:   2.29266 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.4369 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.49351 ms
+ 2. KeyPoints Grid: 19.8993 ms
+ 3. Gaussian Blur:  2.42019 ms
+ 4. ORB Extractor:  20.5044 ms
+ 5. Data Copying:   2.24651 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.68 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.4609 ms
+ 2. KeyPoints Grid: 19.4466 ms
+ 3. Gaussian Blur:  2.56113 ms
+ 4. ORB Extractor:  20.2474 ms
+ 5. Data Copying:   2.3302 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.1368 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.4827 ms
+ 2. KeyPoints Grid: 20.2961 ms
+ 3. Gaussian Blur:  2.42416 ms
+ 4. ORB Extractor:  19.9726 ms
+ 5. Data Copying:   2.27339 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.543 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45178 ms
+ 2. KeyPoints Grid: 19.7193 ms
+ 3. Gaussian Blur:  2.37724 ms
+ 4. ORB Extractor:  19.7126 ms
+ 5. Data Copying:   2.25621 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.564 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45284 ms
+ 2. KeyPoints Grid: 20.6802 ms
+ 3. Gaussian Blur:  2.27391 ms
+ 4. ORB Extractor:  20.4666 ms
+ 5. Data Copying:   2.26942 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  47.1871 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.45888 ms
+ 2. KeyPoints Grid: 20.8416 ms
+ 3. Gaussian Blur:  2.84544 ms
+ 4. ORB Extractor:  20.4564 ms
+ 5. Data Copying:   2.38111 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  48.0299 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47537 ms
+ 2. KeyPoints Grid: 20.9712 ms
+ 3. Gaussian Blur:  2.29999 ms
+ 4. ORB Extractor:  20.6025 ms
+ 5. Data Copying:   2.36357 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  47.7747 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.66415 ms
+ 2. KeyPoints Grid: 20.308 ms
+ 3. Gaussian Blur:  2.91806 ms
+ 4. ORB Extractor:  20.3117 ms
+ 5. Data Copying:   2.31016 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  47.606 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.47005 ms
+ 2. KeyPoints Grid: 20.2254 ms
+ 3. Gaussian Blur:  2.51847 ms
+ 4. ORB Extractor:  19.9472 ms
+ 5. Data Copying:   2.30392 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  46.5387 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.50353 ms
+ 2. KeyPoints Grid: 20.003 ms
+ 3. Gaussian Blur:  2.22142 ms
+ 4. ORB Extractor:  19.888 ms
+ 5. Data Copying:   2.25457 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.9192 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.49745 ms
+ 2. KeyPoints Grid: 19.7936 ms
+ 3. Gaussian Blur:  2.34588 ms
+ 4. ORB Extractor:  19.37 ms
+ 5. Data Copying:   2.26869 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  45.3399 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.4753 ms
+ 2. KeyPoints Grid: 18.7743 ms
+ 3. Gaussian Blur:  2.68984 ms
+ 4. ORB Extractor:  18.5634 ms
+ 5. Data Copying:   2.03926 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  43.6184 ms
+========================================
+
+========================================
+ 1. Pyramid Build:  1.49121 ms
+ 2. KeyPoints Grid: 18.761 ms
+ 3. Gaussian Blur:  2.719 ms
+ 4. ORB Extractor:  18.7244 ms
+ 5. Data Copying:   2.16775 ms
+ --------------------------------------
+ TOTAL FRAME TIME:  43.8994 ms
+========================================
+
