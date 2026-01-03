@@ -67,7 +67,7 @@ Tested on **NVIDIA Jetson Orin Nano** using the **KITTI Odometry Benchmark (Sequ
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/ORB_SLAM3_CUDA.git](https://github.com/tothantonio/ORB_SLAM3_Accelerated.git)
+   git clone https://github.com/tothantonio/ORB_SLAM3_Accelerated.git
    cd ORB_SLAM3_Accelerated
 2. **Build the project: We provide a script to handle the mixed C++/CUDA compilation.**
    ```bash
