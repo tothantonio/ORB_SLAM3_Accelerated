@@ -115,6 +115,4 @@ This project is based on ORB-SLAM3 by Carlos Campos, Richard Elvira, Juan J. Gó
 
 Modifications by: Toth Antonio-Roberto
 
-Supervisor: Mircea Paul Muresan
-
 Technical University of Cluj-Napoca
